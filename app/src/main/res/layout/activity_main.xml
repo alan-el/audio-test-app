@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/buttonRoute0PlayStop"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="128dp"
+        android:onClick="audioTestStopPlay"
+        android:text="@string/route_0_play_stop"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute1Play" />
+
+    <Button
+        android:id="@+id/buttonRoute0CaptureStop"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="20dp"
+        android:onClick="audioTestStopRecord"
+        android:text="@string/route_0_capture_stop"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute1Capture" />
+
+    <Button
+        android:id="@+id/buttonRoute0Capture"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="20dp"
+        android:onClick="audioTestRecord"
+        android:text="@string/route_0_capture"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonRoute1Capture"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="120dp"
+        android:onClick="audioTestRecord"
+        android:text="@string/route_1_capture"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonRoute1CaptureStop"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="20dp"
+        android:onClick="audioTestStopRecord"
+        android:text="@string/route_1_capture_stop"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute0CaptureStop" />
+
+    <Button
+        android:id="@+id/buttonExchangeP"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="128dp"
+        android:onClick="audioTestPlay"
+        android:text="@string/cdp"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute1PlayStop" />
+
+    <Button
+        android:id="@+id/buttonExchangeC"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="20dp"
+        android:onClick="audioTestRecord"
+        android:text="@string/cdc"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute1CaptureStop" />
+
+    <Button
+        android:id="@+id/buttonRoute1PlayStop"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="128dp"
+        android:onClick="audioTestStopPlay"
+        android:text="@string/route_1_play_stop"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute0PlayStop" />
+
+    <Button
+        android:id="@+id/buttonRoute0Play"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="128dp"
+        android:onClick="audioTestPlay"
+        android:text="@string/route_0_play"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonRoute1Play"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="120dp"
+        android:layout_marginEnd="128dp"
+        android:onClick="audioTestPlay"
+        android:text="@string/route_1_play"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

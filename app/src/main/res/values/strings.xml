@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">AT</string>
+    <string name="button_built_in_mic_record">手机MIC录音</string>
+    <string name="button_headset_mic_record">有线耳机MIC录音</string>
+    <string name="button_speaker_play">手机SPK播放</string>
+    <string name="button_headset_speaker_play">有线耳机SPK播放</string>
+
+    <string name="button_rk3568_built_in_mic_record">3568MIC录音</string>
+    <string name="button_usb_headset_mic_record">USB有线耳机MIC录音</string>
+    <string name="button_rk_3568_speaker_play">3568SPK播放</string>
+    <string name="button_usb_headset_speaker_play">USB耳机SPK播放</string>
+
+    <string name="button_record_stop">停止录音</string>
+    <string name="button_paly_stop">停止播放</string>
+
+    <string name="route_0_capture">线路0录音</string>
+    <string name="route_1_capture">线路1录音</string>
+    <string name="route_0_play">线路0播放</string>
+    <string name="route_1_play">线路1播放</string>
+    <string name="route_0_capture_stop">线路0停止录音</string>
+    <string name="route_1_capture_stop">线路1停止录音</string>
+    <string name="route_0_play_stop">线路0停止播放</string>
+    <string name="route_1_play_stop">线路1停止播放</string>
+    <string name="cdp">changedp</string>
+    <string name="cdc">changedc</string>
+</resources>
