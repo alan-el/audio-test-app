@@ -155,11 +155,14 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
         {
             case SOUND_DEV_IN_ON_BOARD_MIC:
             case SOUND_DEV_IN_HEADPHONE_MIC:
-                pd = obsd;
+                pd = (char *)obsd;
                 break;
             case SOUND_DEV_IN_USB_MIC:
-                pd = eusd;
+                pd = (char *)eusd;
                 break;
+            default:
+                LOGE("Invalid device.\n");
+                return;
         }
         struct mixer *mixer;
         for(int card = 0; ; card++)
@@ -170,7 +173,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
                 break;
             }
 
-            char *name = mixer->card_info.name;
+            char *name = (char *)mixer->card_info.name;
             LOGI("Sound card %d mixer information: %s", card, name);
             if(strcmp(pd, name) == 0)
             {
@@ -179,7 +182,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
                 cur_dev.in.pcmD = 0;
                 if(device == SOUND_DEV_IN_ON_BOARD_MIC || device == SOUND_DEV_IN_HEADPHONE_MIC)
                 {
-                    char *mix_route = rn_in[device];
+                    char *mix_route = (char *)rn_in[device];
                     tinymix_set_value(mixer, RK809_IN_CONTROL, &mix_route, 1);
                 }
                 // TODO USB IN MIC or BLUETOOTH MIC
@@ -237,7 +240,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSARead(JNIEnv *env, jobject obj,
         return ret;
     }
 
-    uint size = pcm_frames_to_bytes(g_pcm[route], pcm_get_buffer_size(g_pcm[route]));
+    int size = pcm_frames_to_bytes(g_pcm[route], pcm_get_buffer_size(g_pcm[route]));
     char *buffer = malloc(size);
 
     int frames = audio_test_pcm_read(g_pcm[route], buffer, size);
@@ -325,11 +328,14 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
         {
             case SOUND_DEV_OUT_HP:
             case SOUND_DEV_OUT_SPK:
-                pd = obsd;
+                pd = (char *)obsd;
                 break;
             case SOUND_DEV_OUT_USB_SPK:
-                pd = eusd;
+                pd = (char *)eusd;
                 break;
+            default:
+                LOGE("Invalid device.\n");
+                return;
         }
         struct mixer *mixer;
         for(int card = 0; ; card++)
@@ -340,7 +346,7 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
                 break;
             }
 
-            char *name = mixer->card_info.name;
+            char *name = (char *)mixer->card_info.name;
             LOGI("Sound card %d mixer information: %s", card, name);
             if(strcmp(pd, name) == 0)
             {
@@ -349,7 +355,7 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
                 cur_dev.out.pcmD = 0;
                 if(device == SOUND_DEV_OUT_HP || device == SOUND_DEV_OUT_SPK)
                 {
-                    char *mix_route = rn_out[device - 10];
+                    char *mix_route = (char *)rn_out[device - 10];
                     tinymix_set_value(mixer, RK809_OUT_CONTROL, &mix_route, 1);
                 }
                 // TODO USB SPK or BLUETOOTH SPK
