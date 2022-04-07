@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.buttonRoute0Capture:
                 if(myAudioRecord0.Capturing)
                     return;
-                myAudioRecord0.startRecording(SOUND_DEV_IN_HEADPHONE_MIC);
+                myAudioRecord0.startRecording(myAudioRecord0.sndDevice);
                 captureThread0 = new CaptureThread(0, myAudioRecord0);
                 captureThread0.start();
                 break;
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 captureThread1 = new CaptureThread(1, myAudioRecord1);
                 captureThread1.start();
             case R.id.buttonExchangeC:
-                myAudioRecord0.changeTinyALSADeviceC(SOUND_DEV_IN_ON_BOARD_MIC);
+                myAudioRecord0.changeTinyALSADeviceC(SOUND_DEV_IN_HEADPHONE_MIC);
             default:
                 break;
         }
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.buttonRoute1Play:
                 if(myAudioTrack1.Playing)
                     return;
-                myAudioTrack1.startPlaying(SOUND_DEV_OUT_HEADPHONE_SPK);
+                myAudioTrack1.startPlaying(myAudioTrack1.sndDevices);
                 playThread1 = new PlayThread(1, myAudioTrack1);
                 playThread1.start();
                 break;

@@ -25,11 +25,10 @@ public class MyAudioRecord {
             public native void close(int phone_side);
             public native byte []read(int phone_side, int sampleRate);
 -----------------------------------------------------------------------------------------------*/
-    private int SampleRate;
-    private int ChannelsNum;
 
     private int Route;          // 0: board mic(tinyALSA) -> usb headset(AAudio) ;
                                 // 1: usb mic(AAudio) -> board spk(tinyALSA)
+    public int sndDevice = SOUND_DEV_IN_ON_BOARD_MIC;
     public boolean Capturing = false;
     public byte [] CapturedData = {0};
     // Used to load the 'audiotestapp' library on application startup.
@@ -208,6 +207,6 @@ public class MyAudioRecord {
         }
         this.stopRecording();
 
-        this.startRecording(device);
+        this.sndDevice = device;
     }
 }

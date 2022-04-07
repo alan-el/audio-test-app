@@ -16,7 +16,7 @@ public class MyAudioTrack
     private int Route;          // 0: board mic(tinyALSA) -> usb headset(AAudio) ;
                                 // 1: usb mic(AAudio) -> board spk(tinyALSA)
     private byte [] TrackDataBuffer;
-    private int sndDevices;
+    public int sndDevices = SOUND_DEV_OUT_HEADPHONE_SPK;
     private int writeIndex;
     public boolean Playing = false;
     // Used to load the 'audiotestapp' library on application startup.
@@ -117,7 +117,7 @@ public class MyAudioTrack
         }
         else
         {
-            this.AAudioWrite(this.Route, audioData, 1024);
+            this.AAudioWrite(this.Route, audioData, 2048);
         }
         return 0;
     }
@@ -166,6 +166,6 @@ public class MyAudioTrack
         }
         this.stopPlaying();
 
-        this.startPlaying(device);
+        sndDevices = device;
     }
 }
