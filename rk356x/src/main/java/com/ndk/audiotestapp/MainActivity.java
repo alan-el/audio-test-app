@@ -30,10 +30,9 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("audiotestapp");
     }
 
-    //private ActivityMainBinding binding;
     private final int REQUEST_CODE_ASK_PERMISSIONS = 128;
     private static final String[] REQUEST_PERMISSIONS = new String[]{
-//zqn            Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+//            Manifest.permission.MANAGE_EXTERNAL_STORAGE,
 //            Manifest.permission.WRITE_EXTERNAL_STORAGE,
 //            Manifest.permission.READ_EXTERNAL_STORAGE,
 //            Manifest.permission.READ_PHONE_STATE,
