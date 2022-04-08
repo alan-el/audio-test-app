@@ -39,13 +39,17 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.RECORD_AUDIO
     };
 
-    public MyAudioRecord myAudioRecord0 = new MyAudioRecord(0);
+    public MyAudioRecord myAudioRecord0 = new MyAudioRecord(ROUTE_OUR_SIDE_TO_OPPOSITE_SIZE,
+                                                            SOUND_DEV_IN_ON_BOARD_MIC);
 
-    public MyAudioRecord myAudioRecord1 = new MyAudioRecord(1);
+    public MyAudioRecord myAudioRecord1 = new MyAudioRecord(ROUTE_OPPOSITE_SIZE_TO_OUR_SIDE,
+                                                            SOUND_DEV_IN_USB_MIC);
 
-    public MyAudioTrack myAudioTrack0 = new MyAudioTrack(0);
+    public MyAudioTrack myAudioTrack0 = new MyAudioTrack(ROUTE_OUR_SIDE_TO_OPPOSITE_SIZE,
+                                                            SOUND_DEV_OUT_USB_SPK);
 
-    public MyAudioTrack myAudioTrack1 = new MyAudioTrack(1);
+    public MyAudioTrack myAudioTrack1 = new MyAudioTrack(ROUTE_OPPOSITE_SIZE_TO_OUR_SIDE,
+                                                            SOUND_DEV_OUT_ON_BOARD_SPK);
 
     public CaptureThread captureThread0;
     public CaptureThread captureThread1;
@@ -94,16 +98,16 @@ public class MainActivity extends AppCompatActivity {
                 if(myAudioRecord0.Capturing)
                     return;
                 myAudioRecord0.startRecording(myAudioRecord0.sndDevice);
-                captureThread0 = new CaptureThread(0, myAudioRecord0);
+                captureThread0 = new CaptureThread(ROUTE_OUR_SIDE_TO_OPPOSITE_SIZE, myAudioRecord0);
                 captureThread0.start();
                 break;
             case R.id.buttonRoute1Capture:
                 if(myAudioRecord1.Capturing)
                     return;
-                recordDeviceID = myAudioRecord1.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
-                myAudioRecord1.startRecording(recordDeviceID);
+                myAudioRecord1.startRecording(myAudioRecord1.sndDevice);
                 captureThread1 = new CaptureThread(1, myAudioRecord1);
                 captureThread1.start();
+                break;
             case R.id.buttonExchangeC:
                 myAudioRecord0.changeTinyALSADeviceC(SOUND_DEV_IN_HEADPHONE_MIC);
             default:
@@ -121,36 +125,23 @@ public class MainActivity extends AppCompatActivity {
             case R.id.buttonRoute0Play:
                 if(myAudioTrack0.Playing)
                     return;
-                playDeviceID = myAudioTrack0.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
-                myAudioTrack0.startPlaying(playDeviceID);
+                myAudioTrack0.startPlaying(myAudioTrack0.sndDevice);
                 playThread0 = new PlayThread(0, myAudioTrack0);
                 playThread0.start();
                 break;
             case R.id.buttonRoute1Play:
                 if(myAudioTrack1.Playing)
                     return;
-                myAudioTrack1.startPlaying(myAudioTrack1.sndDevices);
+                myAudioTrack1.startPlaying(myAudioTrack1.sndDevice);
                 playThread1 = new PlayThread(1, myAudioTrack1);
                 playThread1.start();
                 break;
             case R.id.buttonExchangeP:
-                myAudioTrack1.changeTinyALSADeviceP(SOUND_DEV_OUT_ON_BOARD_SPK);
+                myAudioTrack1.changeTinyALSADeviceP(SOUND_DEV_OUT_HEADPHONE_SPK);
                 break;
             default:
                 break;
-//        }
-//        for(AudioDeviceInfo adi : audioDeviceInfo)
-//        {
-//            if(adi.getType() == outputDeviceType) {
-//                playDeviceID = adi.getId();
-//                System.out.println("Device ID = ");
-//                System.out.println(playDeviceID);
-//                break;
-//            }
-            //System.out.println(adi.getType());
         }
-
-//        AAudioCreateOutputStream(playDeviceID);
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -249,21 +240,12 @@ class CaptureThread extends Thread {
     }
     @Override
     public void run() {
-        if(route == 0) {
             while(this.audioRecord.Capturing)
             {
                 byte[] dataRead = this.audioRecord.read();
                 AudioDataBuffer.setData(dataRead, route);
             }
         }
-        else {
-            while(this.audioRecord.Capturing)
-            {
-                byte[] dataRead = this.audioRecord.read();
-                AudioDataBuffer.setData(dataRead, route);
-            }
-        }
-    }
 }
 
 class PlayThread extends Thread {

@@ -165,7 +165,7 @@ aaudio_result_t aaudio_output_stream_write(int route, int32_t size, char *buffer
                                                  timeoutNanoseconds);
     if(result != numFrames)
     {
-        // TODO
+        // TODO 
         LOGI_A("write Frames not equals required. Frames = %d", result);
     }
     return  result;

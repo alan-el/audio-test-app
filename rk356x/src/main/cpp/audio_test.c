@@ -17,57 +17,44 @@
 #include "ndk_aaudio.h"
 
 #define LOG_TAG "audio_test.c"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 #define SOUND_DEV_IN_NONE           -1
 #define SOUND_DEV_IN_ON_BOARD_MIC   0
 #define SOUND_DEV_IN_HEADPHONE_MIC  1
 #define SOUND_DEV_IN_USB_MIC        2
-// TODO BLUETOOTH
+#define SOUND_DEV_IN_EX_USB_MIC     3
 
 #define SOUND_DEV_OUT_NONE          -1
 #define SOUND_DEV_OUT_HP            10
 #define SOUND_DEV_OUT_SPK           11
 #define SOUND_DEV_OUT_USB_SPK       12
-// TODO BLUETOOTH
-
+#define SOUND_DEV_OUT_EX_USB_SPK    13
 
 #define RK809_IN_CONTROL        "1"
 #define RK809_OUT_CONTROL       "0"
+
+// On board sound device name
+static const char *obsd = "rockchip,rk809-codec\0";
+// USB sound device name
+static const char *usd = "USB Audio Device\0";
+// extend USB sound device name
+static const char *eusd = "USB PnP Sound Device\0";
 
 // mixer route name
 const char *rn_in[] =
 {
     "Main Mic",
-    "Hands Free Mic",
-    ""
+    "Hands Free Mic"
 };
 
 const char *rn_out[] =
 {
     "HP",
-    "SPK",
-    ""
+    "SPK"
 };
-/*-----------------------------------------------------------
-#define PCM_STREAM_TYPE_IN  0
-#define PCM_STREAM_TYPE_OUT 0
 
-#define PHONE_SIDE_OUR      0
-#define PHONE_SIDE_OPPOSITE 1
-
-typedef struct phone_side
-{
-    // stream type
-    int st;
-    int card;
-    int sub_dev;
-    int is_open;
-    struct pcm *ppcm;
-}phone_side_t;
-
-phone_side_t our_side = {PCM_STREAM_TYPE_IN, -1, 0, 0, NULL};
-phone_side_t opst_side = {PCM_STREAM_TYPE_OUT, -1, 0, 0, NULL};
----------------------------------------------------------------------------------*/
 typedef struct
 {
     int device;
@@ -82,28 +69,40 @@ typedef struct
     sound_dev_t out;
 }cur_devices_t;
 
-cur_devices_t cur_dev =
+/** maintain current audio device used on our side and opposite side
+ *  cur_dev[0]: our side audio device
+ *  cur_dev[1]: opposite side audio device
+ */
+cur_devices_t cur_dev[2] =
 {
     {
+        {
             SOUND_DEV_IN_NONE,
             -1,
             -1
         },
 
-    {
+        {
             SOUND_DEV_OUT_NONE,
             -1,
             -1
         }
+    },
+    {
+        {
+            SOUND_DEV_IN_NONE,
+            -1,
+            -1
+        },
+
+        {
+            SOUND_DEV_OUT_NONE,
+            -1,
+            -1
+        }
+    }
 };
 
-// On board sound device name
-static const char *obsd = "rockchip,rk809-codec\0";
-// extend USB sound device name
-static const char *eusd = "USB PnP Sound Device\0";
-
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 static struct pcm *g_pcm[4] = {NULL, NULL, NULL, NULL};
 static struct pcm_config g_config[4] = {0};
@@ -141,7 +140,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
     uint sample_rate = 16000;
     uint channels = 2;
 
-    if(device != cur_dev.in.device)
+    if(device != cur_dev[route].in.device)
     {
         if(g_pcm[route] != NULL)
         {
@@ -158,6 +157,9 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
                 pd = (char *)obsd;
                 break;
             case SOUND_DEV_IN_USB_MIC:
+                pd = (char *)usd;
+                break;
+            case SOUND_DEV_IN_EX_USB_MIC:
                 pd = (char *)eusd;
                 break;
             default:
@@ -177,20 +179,29 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
             LOGI("Sound card %d mixer information: %s", card, name);
             if(strcmp(pd, name) == 0)
             {
-                cur_dev.in.device = device;
-                cur_dev.in.pcmC = card;
-                cur_dev.in.pcmD = 0;
+                cur_dev[route].in.device = device;
+                cur_dev[route].in.pcmC = card;
+                cur_dev[route].in.pcmD = 0;
+
                 if(device == SOUND_DEV_IN_ON_BOARD_MIC || device == SOUND_DEV_IN_HEADPHONE_MIC)
                 {
                     char *mix_route = (char *)rn_in[device];
                     tinymix_set_value(mixer, RK809_IN_CONTROL, &mix_route, 1);
                 }
-                // TODO USB IN MIC or BLUETOOTH MIC
-//                else
-//                {}
+
+                else if(device == SOUND_DEV_IN_USB_MIC || device == SOUND_DEV_IN_EX_USB_MIC)
+                {
+                    sample_rate = 48000;
+                }
+
+                if(device == SOUND_DEV_IN_USB_MIC)
+                {
+                    channels = 1;
+                }
                 mixer_close(mixer);
                 break;
             }
+            mixer_close(mixer);
         }
     }
     else
@@ -202,7 +213,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
         }
     }
 
-    audio_test_pcm_open_cap(g_config + route, route, cur_dev.in.pcmC, cur_dev.in.pcmD,
+    audio_test_pcm_open_cap(g_config + route, route, cur_dev[route].in.pcmC, cur_dev[route].in.pcmD,
                             channels, sample_rate, format, period_size, period_count);
 }
 JNIEXPORT void JNICALL
@@ -241,33 +252,62 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSARead(JNIEnv *env, jobject obj,
     }
 
     int size = pcm_frames_to_bytes(g_pcm[route], pcm_get_buffer_size(g_pcm[route]));
+    int change_x = 2;
     char *buffer = malloc(size);
 
     int frames = audio_test_pcm_read(g_pcm[route], buffer, size);
-    LOGI("Capture %d frames.", frames);
-/*
-    jbyteArray jframe = (*env)->NewByteArray(env, size);
+    LOGI("Capture %d frames. route = %d", frames, route);
 
-    (*env)->SetByteArrayRegion(env, jframe, 0, size - 1, buffer);
+    /* 双声道数据->单声道声道 */
+    if(g_config[route].channels == 2)
+    {
+        size /= 2;
+        change_x = 4;
+    }
 
-    return jframe;*/
-     /* 双声道数据->单声道声道 */
-     jbyte * j_frame = (jbyte*)calloc(sizeof(jbyte), size / 2);
-     int mono_data_index = 0;
-     for(int i = 0; i < size; i += 4)
-     {
+
+    jbyte * j_frame = (jbyte*)calloc(sizeof(jbyte), size);
+
+    int mono_data_index = 0;
+    for(int i = 0; i < size; i += change_x)
+    {
          j_frame[mono_data_index] = buffer[i];
          j_frame[mono_data_index + 1] = buffer[i + 1];
          mono_data_index += 2;
-     }
+    }
 
-     jbyteArray jframe = (*env)->NewByteArray(env, size / 2);
+    free(buffer);
 
-     (*env)->SetByteArrayRegion(env, jframe, 0, size / 2 - 1, j_frame);
+    /* down sample rate: 48kHz -> 16kHz */
+    if(g_config[route].rate == 48000)
+    {
+        size /= 3;
+        jbyte * ds_frame = (jbyte*)calloc(sizeof(jbyte), size);
+        for(int i = 0; i < size; i += 2)
+        {
+            *(ds_frame + i) = *(j_frame + (3 * i));
+            *(ds_frame + i + 1) = *(j_frame + (3 * i) + 1);
+        }
 
-     free(j_frame);
+        jbyteArray jframe = (*env)->NewByteArray(env, size);
 
-    return jframe;
+        (*env)->SetByteArrayRegion(env, jframe, 0, size - 1, ds_frame);
+
+        free(j_frame);
+        free(ds_frame);
+
+        return jframe;
+    }
+    else
+    {
+        jbyteArray jframe = (*env)->NewByteArray(env, size);
+
+        (*env)->SetByteArrayRegion(env, jframe, 0, size - 1, j_frame);
+
+        free(j_frame);
+
+        return jframe;
+    }
 }
 
 JNIEXPORT jbyteArray JNICALL
@@ -314,7 +354,7 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
     unsigned int channels = 2;
     uint sample_rate = 16000;
 
-    if(device != cur_dev.out.device)
+    if(device != cur_dev[route].out.device)
     {
         if(g_pcm[route + 2] != NULL)
         {
@@ -331,6 +371,9 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
                 pd = (char *)obsd;
                 break;
             case SOUND_DEV_OUT_USB_SPK:
+                pd = (char *)eusd;
+                break;
+            case SOUND_DEV_OUT_EX_USB_SPK:
                 pd = (char *)eusd;
                 break;
             default:
@@ -350,22 +393,24 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
             LOGI("Sound card %d mixer information: %s", card, name);
             if(strcmp(pd, name) == 0)
             {
-                cur_dev.out.device = device;
-                cur_dev.out.pcmC = card;
-                cur_dev.out.pcmD = 0;
+                cur_dev[route].out.device = device;
+                cur_dev[route].out.pcmC = card;
+                cur_dev[route].out.pcmD = 0;
                 if(device == SOUND_DEV_OUT_HP || device == SOUND_DEV_OUT_SPK)
                 {
                     char *mix_route = (char *)rn_out[device - 10];
                     tinymix_set_value(mixer, RK809_OUT_CONTROL, &mix_route, 1);
                 }
-                // TODO USB SPK or BLUETOOTH SPK
-                else
-                {}
+
+                else if(device == SOUND_DEV_OUT_USB_SPK || device == SOUND_DEV_OUT_EX_USB_SPK)
+                {
+                    sample_rate = 48000;
+                }
                 mixer_close(mixer);
                 break;
             }
             mixer_close(mixer);
-        }/**/
+        }
     }
     else
     {
@@ -376,7 +421,7 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
         }
     }
 
-    audio_test_pcm_open_play(g_config + route + 2, route, cur_dev.out.pcmC, cur_dev.out.pcmD
+    audio_test_pcm_open_play(g_config + route + 2, route, cur_dev[route].out.pcmC, cur_dev[route].out.pcmD
                              , channels, sample_rate, format, period_size, period_count);
 
 }
@@ -392,10 +437,17 @@ JNIEXPORT void JNICALL
 Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAWrite(JNIEnv *env, jobject thiz, jint route,
                                                      jbyteArray data)
 {
+    if(g_pcm[route + 2] == NULL)
+    {
+        LOGE("pcm device is NULL.\n");
+        return;
+    }
+
     jbyte *bytes = (*env)->GetByteArrayElements(env, data, 0);
 
     int size = pcm_frames_to_bytes(g_pcm[route + 2],
                                    pcm_get_buffer_size(g_pcm[route + 2]));
+    /* bookmark TODO if usb device, 16kHz -> 48kHz */
     char *buffer = malloc(size);
     memset(buffer, 0, size);
     memcpy(buffer, bytes, size);
@@ -637,189 +689,3 @@ static void tinymix_set_value(struct mixer *mixer, const char *control,
     }
 }
 
-/*-----------------------------------------------------------------------------------------------
-struct pcm *open_device_c( unsigned int card, unsigned int device,
-                            unsigned int channels, unsigned int rate,
-                            enum pcm_format format, unsigned int period_size,
-                            unsigned int period_count)
-{
-    struct pcm_config config;
-    struct pcm *pcm;
-
-    config.channels = channels;
-    config.rate = rate;
-    config.period_size = period_size;
-    config.period_count = period_count;
-    config.format = format;
-    config.start_threshold = 0;
-    config.stop_threshold = 0;
-    config.silence_threshold = 0;
-
-    pcm = pcm_open(card, device, PCM_IN, &config);
-    if (!pcm || !pcm_is_ready(pcm)) {
-        LOGE("Unable to open PCM device (%s)\n", pcm_get_error(pcm));
-        return NULL;
-    }
-    return pcm;
-}
-
-
-JNIEXPORT jint JNICALL
-Java_com_ndk_audiotestapp_MyAudioRecord_open(JNIEnv *env, jobject thiz, jint phone_side,
-                                             jint device)
-{
-    if(phone_side == PHONE_SIDE_OUR)
-    {
-        if(our_side.is_open == 0)
-        {
-            if(our_side.card == -1)
-            {
-                int card = 0;
-                struct mixer *mixer;
-                for(;; card++)
-                {
-                    mixer = mixer_open(card);
-
-                    if (!mixer)
-                    {
-                        LOGE("Failed to open mixer\n");
-                        LOGI("No Mic specified found.\n");
-
-//                        jbyte ret_failed = -1;
-//                        jbyteArray ret = (*env)->NewByteArray(env, 1);
-//                        (*env)->SetByteArrayRegion(env, ret, 0, 0, &ret_failed);
-
-                        return -1;
-                    }
-
-                    char *name = mixer->card_info.name;
-                    LOGI("Sound card %d mixer information: %s", card, name);
-
-                    if(device == SOUND_DEV_REC_ON_BOARD_MIC)
-                    {
-                        // Sound card rk809 detected.
-                        if (strcmp(obsd, name) == 0)
-                        {
-                            char *mix_route = "Main Mic";
-                            tinymix_set_value(mixer, "1", &mix_route, 1);
-                            our_side.card = card;
-                            our_side.sub_dev = 0;
-                            mixer_close(mixer);
-                            break;
-                        }
-                    }
-                    // TODO other devices
-                    mixer_close(mixer);
-                }
-            }
-
-            uint channels = 2;
-            uint rate = 16000;
-            uint period_size = PERIOD_SIZE;
-            uint period_count = PERIOD_COUNT;
-            enum pcm_format format = PCM_FORMAT_S16_LE;
-
-            our_side.ppcm = open_device_c( our_side.card, our_side.sub_dev, channels,
-                                     rate, format, period_size, period_count);
-            // open successfully
-            if(our_side.ppcm != NULL)
-            {
-                our_side.is_open = 1;
-                our_side.st = PCM_STREAM_TYPE_IN;
-                return 0;
-            }
-            return -1;
-        }
-        else
-            return 0;
-    }
-
-    // TODO PHONE_SIDE_OPPOSITE
-}
-
-
-JNIEXPORT void JNICALL
-Java_com_ndk_audiotestapp_MyAudioRecord_close(JNIEnv *env, jobject thiz, jint phone_side)
-{
-    if(phone_side == PHONE_SIDE_OUR)
-    {
-        if(our_side.is_open == 1)
-        {
-            pcm_close(our_side.ppcm);
-            our_side.ppcm = NULL;
-            our_side.is_open = 0;
-        }
-    }
-    // TODO
-    else if(phone_side == PHONE_SIDE_OPPOSITE)
-    {}
-}
-
-JNIEXPORT jbyteArray JNICALL
-Java_com_ndk_audiotestapp_MyAudioRecord_read(JNIEnv *env, jobject thiz, jint phone_side,
-                                             jint sample_rate)
-{
-    if(phone_side == PHONE_SIDE_OUR)
-    {
-        if(our_side.is_open == 1)
-        {
-            //unsigned int bytes_read = 0;
-            uint channels = 2;
-            uint rate = 16000;
-            uint period_size = PERIOD_SIZE;
-            uint period_count = PERIOD_COUNT;
-            enum pcm_format format = PCM_FORMAT_S16_LE;
-
-            printf("Capturing sample: %u ch, %u hz, %u bit\n", channels, rate,
-                   pcm_format_to_bits(format));
-            unsigned int size;
-            char *buffer;
-            size = (period_size * period_count) * (pcm_format_to_bits(format) >> 3) * channels;
-            buffer = malloc(size);
-
-            if (!buffer)
-            {
-                LOGE("Unable to allocate %d bytes\n", size);
-                free(buffer);
-
-                jbyte ret_failed = -1;
-                jbyteArray ret = (*env)->NewByteArray(env, 1);
-                (*env)->SetByteArrayRegion(env, ret, 0, 0, &ret_failed);
-
-                return ret;
-            }
-
-            if (!pcm_read(our_side.ppcm, buffer, size))
-            {
-                LOGI("TinyALSA Capture : %d frames.\n", period_size * period_count);
-                //bytes_read += size;
-                jbyteArray ret = (*env)->NewByteArray(env, size);
-                (*env)->SetByteArrayRegion(env, ret, 0, size - 1, (jbyte *)buffer);
-                free(buffer);
-                return ret;
-            }
-            else
-            {
-                LOGI("TinyALSA Capture Failed.\n");
-                free(buffer);
-                jbyte ret_failed = -1;
-                jbyteArray ret = (*env)->NewByteArray(env, 1);
-                (*env)->SetByteArrayRegion(env, ret, 0, 0, &ret_failed);
-                return ret;
-            }
-
-
-        }
-        else
-        {
-            LOGE("Device isn't opened.\n");
-            jbyte ret_failed = -1;
-            jbyteArray ret = (*env)->NewByteArray(env, 1);
-            (*env)->SetByteArrayRegion(env, ret, 0, 0, &ret_failed);
-        }
-    }
-    // TODO
-    else
-    {}
-}
- ---------------------------------------------------------------------------------------------*/

@@ -9,26 +9,19 @@ import java.io.File;
 import java.io.IOException;
 
 public class MyAudioRecord {
+    /* Route Defination */
+    public static final int ROUTE_OUR_SIDE_TO_OPPOSITE_SIZE = 0;
+    public static final int ROUTE_OPPOSITE_SIZE_TO_OUR_SIDE = 1;
 
-        public static final int SOUND_DEV_IN_ON_BOARD_MIC = 0;
-        public static final int SOUND_DEV_IN_HEADPHONE_MIC = 1;
-        public static final int SOUND_DEV_IN_USB_MIC = 2;
-/*----------------------------------------------------------------------------------------------
-            public static final int PHONE_SIDE_OUR = 0;
-            public static final int PHONE_SIDE_OPPOSITE = 1;
+    /* Sound Device Defination */
+    public static final int SOUND_DEV_IN_ON_BOARD_MIC = 0;
+    public static final int SOUND_DEV_IN_HEADPHONE_MIC = 1;
+    public static final int SOUND_DEV_IN_USB_MIC = 2;
+    public static final int SOUND_DEV_IN_EX_USB_MIC = 3;
 
-            private int device;
-            private int sampleRate;
-
-
-            public native int open(int phone_side, int device);
-            public native void close(int phone_side);
-            public native byte []read(int phone_side, int sampleRate);
------------------------------------------------------------------------------------------------*/
-
-    private int Route;          // 0: board mic(tinyALSA) -> usb headset(AAudio) ;
-                                // 1: usb mic(AAudio) -> board spk(tinyALSA)
-    public int sndDevice = SOUND_DEV_IN_ON_BOARD_MIC;
+    private int Route;          // 0: board mic -> usb headset;
+                                // 1: usb mic -> board spk
+    public int sndDevice;
     public boolean Capturing = false;
     public byte [] CapturedData = {0};
     // Used to load the 'audiotestapp' library on application startup.
@@ -43,14 +36,13 @@ public class MyAudioRecord {
 
 
     public native void TinyALSACloseDeviceC(int route);
-    public native void AAudioCloseDeviceC();
 
     public native byte [] TinyALSARead(int route);
-    public native byte [] AAudioRead(int route);
 
-    public MyAudioRecord(int Route)
+    public MyAudioRecord(int Route, int dev)
     {
         this.Route = Route;
+        this.sndDevice = dev;
     }
 
     public static boolean RootCommand(String command) {
@@ -130,16 +122,8 @@ public class MyAudioRecord {
         if(this.Capturing == true)
             return;
         // required sample rate = 16kHz, required channels number = 1
-        if(this.Route == 0)
-        {
-            this.Capturing = true;
-            this.TinyALSAOpenDeviceC(this.Route, Device);
-        }
-        else
-        {
-            this.Capturing = true;
-            this.AAudioOpenDeviceC(this.Route, Device);
-        }
+        this.Capturing = true;
+        this.TinyALSAOpenDeviceC(this.Route, Device);
     }
 
     public void stopRecording()
@@ -147,8 +131,6 @@ public class MyAudioRecord {
         if(this.Capturing == false)
             return;
 
-        if(this.Route == 0)
-        {
             this.Capturing = false;
             // TODO 等待 read 线程退出
             try {
@@ -157,28 +139,10 @@ public class MyAudioRecord {
                 e.printStackTrace();
             }
             TinyALSACloseDeviceC(this.Route);
-        }
-        else
-        {
-            this.Capturing = false;
-            // TODO 等待 read 线程退出
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            AAudioCloseDeviceC();
-        }
     }
     public byte[] read ()
     {
-        if(this.Route == 0) {
-            return this.CapturedData = this.TinyALSARead(this.Route);
-        }
-        else
-        {
-            return this.CapturedData = this.AAudioRead(this.Route);
-        }
+        return this.CapturedData = this.TinyALSARead(this.Route);
     }
 
     public int getAudioDeviceID(int audioDeviceType, AudioManager audioManager)
