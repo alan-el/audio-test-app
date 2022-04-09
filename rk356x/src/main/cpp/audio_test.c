@@ -211,6 +211,9 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
             LOGE("Already open.\n");
             return;
         }
+
+        sample_rate = g_config[route].rate;
+        channels = g_config[route].channels;
     }
 
     audio_test_pcm_open_cap(g_config + route, route, cur_dev[route].in.pcmC, cur_dev[route].in.pcmD,
@@ -223,20 +226,6 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSACloseDeviceC(JNIEnv *env, jobjec
     audio_test_pcm_close_cap(g_pcm[route]);
     g_pcm[route] = NULL;
     LOGI("Close finished.\n");
-}
-
-JNIEXPORT void JNICALL
-Java_com_ndk_audiotestapp_MyAudioRecord_AAudioOpenDeviceC(JNIEnv *env, jobject thiz, jint route, jint device_id)
-{
-    aaudio_input_stream_create(device_id);
-    aaudio_input_stream_start();
-}
-
-
-JNIEXPORT void JNICALL
-Java_com_ndk_audiotestapp_MyAudioRecord_AAudioCloseDeviceC(JNIEnv *env, jobject thiz)
-{
-    aaudio_input_stream_close();
 }
 
 JNIEXPORT jbyteArray JNICALL
@@ -310,40 +299,6 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSARead(JNIEnv *env, jobject obj,
     }
 }
 
-JNIEXPORT jbyteArray JNICALL
-Java_com_ndk_audiotestapp_MyAudioRecord_AAudioRead(JNIEnv *env, jobject obj, jint route)
-{
-    char *buffer = malloc(SIZE_IN_BYTE);
-    memset(buffer, 0, SIZE_IN_BYTE);
-
-    aaudio_result_t result = aaudio_input_stream_read(route, SIZE_IN_BYTE,
-                                                      buffer,10);
-    LOGI("frames read = %d", result);
-
-    // 音量扩大x倍
-    short *p_short = (short *)buffer;
-    int vol_amplification = 8; // 放大倍数
-    for(int i = 0; i < SIZE_IN_BYTE / 2; i++)
-    {
-        int temp = ((int)p_short[i]) * vol_amplification;
-
-        if(temp > 32767)
-            temp = 32767;
-        else if(temp < -32768)
-            temp = -32768;
-
-        p_short[i] = temp;
-    }
-
-    jbyteArray jframe = (*env)->NewByteArray(env, SIZE_IN_BYTE);
-    (*env)->SetByteArrayRegion(env, jframe, 0, SIZE_IN_BYTE - 1, (jbyte *)buffer);
-
-    free(buffer);
-
-    return jframe;
-
-}
-
 JNIEXPORT void JNICALL
 Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject thiz,
                                                            jint route, jint device)
@@ -371,7 +326,7 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
                 pd = (char *)obsd;
                 break;
             case SOUND_DEV_OUT_USB_SPK:
-                pd = (char *)eusd;
+                pd = (char *)usd;
                 break;
             case SOUND_DEV_OUT_EX_USB_SPK:
                 pd = (char *)eusd;
@@ -405,6 +360,7 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
                 else if(device == SOUND_DEV_OUT_USB_SPK || device == SOUND_DEV_OUT_EX_USB_SPK)
                 {
                     sample_rate = 48000;
+                    period_count *= 3;
                 }
                 mixer_close(mixer);
                 break;
@@ -419,6 +375,9 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
             LOGE("Already open.\n");
             return;
         }
+
+        sample_rate = g_config[route + 2].rate;
+        period_count = g_config[route + 2].period_count;
     }
 
     audio_test_pcm_open_play(g_config + route + 2, route, cur_dev[route].out.pcmC, cur_dev[route].out.pcmD
@@ -447,46 +406,28 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAWrite(JNIEnv *env, jobject thiz, 
 
     int size = pcm_frames_to_bytes(g_pcm[route + 2],
                                    pcm_get_buffer_size(g_pcm[route + 2]));
-    /* bookmark TODO if usb device, 16kHz -> 48kHz */
+
     char *buffer = malloc(size);
     memset(buffer, 0, size);
-    memcpy(buffer, bytes, size);
+
+    /* if usb device, 16kHz -> 48kHz */
+    if(g_config[route + 2].rate == 48000)
+    {
+        for(int i = 0; i < (size / 3); i += 4)
+        {
+            buffer[3 * i] = buffer[3 * i + 4] = buffer[3 * i + 8] = bytes[i];
+            buffer[3 * i + 1] = buffer[3 * i + 5] = buffer[3 * i + 9] = bytes[i + 1];
+            buffer[3 * i + 2] = buffer[3 * i + 6] = buffer[3 * i + 10] = bytes[i + 2];
+            buffer[3 * i + 3] = buffer[3 * i + 7] = buffer[3 * i + 11] = bytes[i + 3];
+        }
+    }
+    else
+        memcpy(buffer, bytes, size);
 
     (*env)->ReleaseByteArrayElements(env, data, bytes, 0);
 
     audio_test_pcm_write(g_pcm[route + 2], route, buffer, size);
 
-    free(buffer);
-}
-
-JNIEXPORT void JNICALL
-Java_com_ndk_audiotestapp_MyAudioTrack_AAudioOpenDeviceP(JNIEnv *env, jobject thiz,
-                                                         jint route, jint device_id)
-{
-    aaudio_output_stream_create(device_id);
-    aaudio_output_stream_start();
-}
-
-JNIEXPORT void JNICALL
-Java_com_ndk_audiotestapp_MyAudioTrack_AAudioCloseDeviceP(JNIEnv *env, jobject thiz)
-{
-    aaudio_output_stream_close();
-}
-
-JNIEXPORT void JNICALL
-Java_com_ndk_audiotestapp_MyAudioTrack_AAudioWrite(JNIEnv *env, jobject thiz, jint route,
-                                                   jbyteArray data, jint size)
-{
-    jbyte *bytes;
-    bytes = (*env)->GetByteArrayElements(env, data, 0);
-
-    char *buffer = malloc(size);
-    memset(buffer, 0, size);
-    memcpy(buffer, bytes, size);
-
-    aaudio_output_stream_write(route, size, buffer, 1);
-
-    (*env)->ReleaseByteArrayElements(env, data, bytes, 0);
     free(buffer);
 }
 

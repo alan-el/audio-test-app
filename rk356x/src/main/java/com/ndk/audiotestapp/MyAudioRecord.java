@@ -31,9 +31,6 @@ public class MyAudioRecord {
 
     // 使用底层 C 库(tinyalsa)录音
     public native void TinyALSAOpenDeviceC(int route, int device);
-    // 使用 NDK AAudio 库录音
-    public native void AAudioOpenDeviceC(int route, int deviceID);
-
 
     public native void TinyALSACloseDeviceC(int route);
 
