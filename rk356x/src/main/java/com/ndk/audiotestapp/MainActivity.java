@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 myAudioRecord1.startRecording(recordDeviceID);
                 captureThread1 = new CaptureThread(1, myAudioRecord1);
                 captureThread1.start();
+                break;
             case R.id.buttonExchangeC:
                 myAudioRecord0.changeTinyALSADeviceC(SOUND_DEV_IN_HEADPHONE_MIC);
             default:
