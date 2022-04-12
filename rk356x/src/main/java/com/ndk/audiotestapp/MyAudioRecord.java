@@ -185,10 +185,11 @@ public class MyAudioRecord {
     {
         int recordDeviceID = 0;
         AudioDeviceInfo audioDeviceInfo[] = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-
+        int deviceType;
         for(AudioDeviceInfo adi : audioDeviceInfo)
         {
-            if(adi.getType() == audioDeviceType) {
+            deviceType = adi.getType();
+            if(deviceType == audioDeviceType) {
                 recordDeviceID = adi.getId();
                 System.out.println("Device ID = ");
                 System.out.println(recordDeviceID);

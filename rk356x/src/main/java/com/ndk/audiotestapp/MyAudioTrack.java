@@ -126,10 +126,11 @@ public class MyAudioTrack
     {
         int playDeviceID = 0;
         AudioDeviceInfo audioDeviceInfo[] = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-
+        int deviceType;
         for(AudioDeviceInfo adi : audioDeviceInfo)
         {
-            if(adi.getType() == audioDeviceType) {
+            deviceType = adi.getType();
+            if(deviceType == audioDeviceType) {
                 playDeviceID = adi.getId();
                 System.out.println("Device ID = ");
                 System.out.println(playDeviceID);
