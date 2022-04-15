@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -53,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     public PlayThread playThread0;
     public PlayThread playThread1;
 
+    HeadsetPlugReceiver receiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,9 +65,22 @@ public class MainActivity extends AppCompatActivity {
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, REQUEST_CODE_ASK_PERMISSIONS);
         }
+
+        configureReceiver();
 //        MyAudioRecord.AudioDevFilePermissionGet();
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
 
+    private void configureReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.intent.action.HEADSET_PLUG");
+        receiver = new HeadsetPlugReceiver(this);
+        registerReceiver(receiver, filter);
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -80,6 +96,28 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 return;
             }
+        }
+    }
+    public void restartUSBAudioDevice()
+    {
+        int DeviceID;
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if(myAudioRecord1.Capturing)
+        {
+            myAudioRecord1.stopRecording();
+            DeviceID = myAudioRecord1.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
+            myAudioRecord1.startRecording(DeviceID);
+            captureThread1 = new CaptureThread(1, myAudioRecord1);
+            captureThread1.start();
+        }
+
+        if(myAudioTrack0.Playing)
+        {
+            myAudioTrack0.stopPlaying();
+            DeviceID = myAudioTrack0.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
+            myAudioTrack0.startPlaying(DeviceID);
+            playThread0 = new PlayThread(0, myAudioTrack0);
+            playThread0.start();
         }
     }
 

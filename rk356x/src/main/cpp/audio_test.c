@@ -165,12 +165,12 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSAOpenDeviceC(JNIEnv *env, jobject
                 return;
         }
         struct mixer *mixer;
-        for(int card = 0; ; card++)
+        for(int card = 0; card < 7; card++)
         {
             mixer = mixer_open(card);
             if (!mixer) {
                 LOGE("Failed to open mixer\n");
-                break;
+                continue;
             }
 
             char *name = (char *)mixer->card_info.name;
@@ -338,12 +338,12 @@ Java_com_ndk_audiotestapp_MyAudioTrack_TinyALSAOpenDeviceP(JNIEnv *env, jobject 
                 return;
         }
         struct mixer *mixer;
-        for(int card = 0; ; card++)
+        for(int card = 0; card < 7; card++)
         {
             mixer = mixer_open(card);
             if (!mixer) {
                 LOGE("Failed to open mixer\n");
-                break;
+                continue;
             }
 
             char *name = (char *)mixer->card_info.name;
