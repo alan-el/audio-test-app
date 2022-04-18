@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             myAudioRecord1.stopRecording();
             DeviceID = myAudioRecord1.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
             myAudioRecord1.startRecording(DeviceID);
-            captureThread1 = new CaptureThread(1, myAudioRecord1);
+            captureThread1 = new CaptureThread(1, myAudioRecord1, getExternalFilesDir(null));
             captureThread1.start();
         }
 
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             myAudioTrack0.stopPlaying();
             DeviceID = myAudioTrack0.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
             myAudioTrack0.startPlaying(DeviceID);
-            playThread0 = new PlayThread(0, myAudioTrack0);
+            playThread0 = new PlayThread(0, myAudioTrack0, getExternalFilesDir(null));
             playThread0.start();
         }
     }
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 if(myAudioRecord0.Capturing)
                     return;
                 myAudioRecord0.startRecording(myAudioRecord0.sndDevice);
-                captureThread0 = new CaptureThread(0, myAudioRecord0);
+                captureThread0 = new CaptureThread(0, myAudioRecord0, getExternalFilesDir(null));
                 captureThread0.start();
                 break;
             case R.id.buttonRoute1Capture:
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 recordDeviceID = myAudioRecord1.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
                 myAudioRecord1.startRecording(recordDeviceID);
-                captureThread1 = new CaptureThread(1, myAudioRecord1);
+                captureThread1 = new CaptureThread(1, myAudioRecord1, getExternalFilesDir(null));
                 captureThread1.start();
                 break;
             case R.id.buttonExchangeC:
@@ -167,14 +167,14 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 playDeviceID = myAudioTrack0.getAudioDeviceID(AudioDeviceInfo.TYPE_USB_HEADSET, audioManager);
                 myAudioTrack0.startPlaying(playDeviceID);
-                playThread0 = new PlayThread(0, myAudioTrack0);
+                playThread0 = new PlayThread(0, myAudioTrack0, getExternalFilesDir(null));
                 playThread0.start();
                 break;
             case R.id.buttonRoute1Play:
                 if(myAudioTrack1.Playing)
                     return;
                 myAudioTrack1.startPlaying(myAudioTrack1.sndDevices);
-                playThread1 = new PlayThread(1, myAudioTrack1);
+                playThread1 = new PlayThread(1, myAudioTrack1, getExternalFilesDir(null));
                 playThread1.start();
                 break;
             case R.id.buttonExchangeP:
@@ -229,49 +229,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void FileIOonClicked(View view)
+    public static void saveBytesToFile(File EFD, String filename, byte[] data)
     {
-        /*  Create new file
-            File appSED = new File(getExternalFilesDir(null), "dummy.txt");
+        File file = new File(EFD, filename);
+
+        if(!file.exists())
+        {
             try {
-                if(!appSED.exists())
-                    appSED.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        */
-
-        /* appSED Indicate application standard external (storage) directory */
-        File appSED = new File(this.getExternalFilesDir(null), "dummy.txt");
-//        System.out.println("File path: " + appSED.getAbsolutePath());
-        if(view.getId() == R.id.buttonReadFile)
-        {
-            try (FileInputStream fin = new FileInputStream(appSED)) {
-                int ret;
-                byte byteRead;
-                do {
-                    ret = fin.read();
-                    if(ret != -1) {
-                        byteRead = (byte) ret;
-                        System.out.print((char)byteRead);
-                    }
-                }while(ret != -1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.flush();
-        }
-
-        else if(view.getId() == R.id.buttonWriteFile)
-        {
-            try(FileOutputStream fos = new FileOutputStream(appSED, true)) {
-                String s = "Hello!\n";
-                byte[] textBytes = s.getBytes();
-                fos.write(textBytes);
+                file.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+        try(FileOutputStream fos = new FileOutputStream(file, true)) {
+            fos.write(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int readBytesFromFile(File EFD, String filename, byte[] data, int off)
+    {
+        File file = new File(EFD, filename);
+        int ret = -1;
+
+        try(FileInputStream fin = new FileInputStream(file)) {
+            fin.skip(off);
+            ret = fin.read(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 
     public static boolean execCommand(String command) {
@@ -329,12 +318,13 @@ public class MainActivity extends AppCompatActivity {
 class CaptureThread extends Thread {
 
     private final int route;
-
+    private File EFD;
     private final MyAudioRecord audioRecord;
-    public CaptureThread(int route_set, MyAudioRecord AudioRecord)
+    public CaptureThread(int route_set, MyAudioRecord AudioRecord, File EFD_set)
     {
         route = route_set;
         audioRecord = AudioRecord;
+        EFD = EFD_set;
     }
     @Override
     public void run() {
@@ -349,7 +339,7 @@ class CaptureThread extends Thread {
             while(this.audioRecord.Capturing)
             {
                 byte[] dataRead = this.audioRecord.read();
-                AudioDataBuffer.setData(dataRead, route);
+                MainActivity.saveBytesToFile(EFD, "voice_2.pcm" ,dataRead);
             }
         }
     }
@@ -359,21 +349,29 @@ class PlayThread extends Thread {
 
     private final int route;
     private final MyAudioTrack audioTrack;
-    private final byte [] foo;
-    public PlayThread(int route_set, MyAudioTrack AudioTrack)
+    private File EFD;
+    private int off;
+    public PlayThread(int route_set, MyAudioTrack AudioTrack, File EFD_set)
     {
         this.route = route_set;
         this.audioTrack = AudioTrack;
-        foo = new byte[]{1, 2, 3, 4, 5, 6, 7, 8};
+        EFD = EFD_set;
+        off = 0;
     }
     @Override
     public void run() {
         while(this.audioTrack.Playing) {
-            if(!AudioDataBuffer.isDataFetched(this.route)) {
-                 byte[] data = AudioDataBuffer.getData(this.route);
-                 this.audioTrack.write(data);
-             }
-
+            byte[] data = new byte[2048];
+            int ret = MainActivity.readBytesFromFile(EFD, "noise.pcm",
+                                            data, off);
+            if(ret != -1) {
+                this.audioTrack.write(data);
+                off += data.length;
+            }
+            else {
+                off = 0;
+                break;
+            }
         }
     }
 }

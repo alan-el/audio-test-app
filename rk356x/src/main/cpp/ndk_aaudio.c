@@ -54,8 +54,8 @@ void aaudio_input_stream_create(int device_id) {
     int32_t buffer_cap = AAudioStream_getBufferCapacityInFrames(input_stream);
     LOGI_A("Buffer Capacity = %d\n", buffer_cap);
 
-    aaudio_usage_t usage = AAudioStream_getUsage(output_stream);
-    LOGI_A("Audio usage = %d\n", usage);
+//    aaudio_usage_t usage = AAudioStream_getUsage(output_stream);
+//    LOGI_A("Audio usage = %d\n", usage);
 }
 
 void aaudio_input_stream_close(void)
@@ -113,6 +113,7 @@ void aaudio_output_stream_create(int device_id)
 
     AAudioStreamBuilder_setDeviceId(builder, device_id);
     AAudioStreamBuilder_setContentType(builder, AAUDIO_CONTENT_TYPE_SPEECH);
+    AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_VOICE_COMMUNICATION);
     AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
     AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_SHARED);
     AAudioStreamBuilder_setSampleRate(builder, USB_SPK_SAMPLE_RATE);
