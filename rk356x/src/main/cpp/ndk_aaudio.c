@@ -53,6 +53,9 @@ void aaudio_input_stream_create(int device_id) {
     LOGI_A("Format = %d\n", format);
     int32_t buffer_cap = AAudioStream_getBufferCapacityInFrames(input_stream);
     LOGI_A("Buffer Capacity = %d\n", buffer_cap);
+
+    aaudio_usage_t usage = AAudioStream_getUsage(output_stream);
+    LOGI_A("Audio usage = %d\n", usage);
 }
 
 void aaudio_input_stream_close(void)
@@ -138,6 +141,9 @@ void aaudio_output_stream_create(int device_id)
     LOGI_A("Format = %d\n", format);
     int32_t buffer_cap =  AAudioStream_getBufferCapacityInFrames(output_stream);
     LOGI_A("Buffer Capacity = %d\n", buffer_cap);
+
+    aaudio_usage_t usage = AAudioStream_getUsage(output_stream);
+    LOGI_A("Audio usage = %d\n", usage);
 
 }
 void aaudio_output_stream_close(void)

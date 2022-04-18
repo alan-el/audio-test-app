@@ -20,6 +20,10 @@ import android.view.View;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 //import com.ndk.audiotestapp.databinding.ActivityMainBinding;
@@ -34,10 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_CODE_ASK_PERMISSIONS = 128;
     private static final String[] REQUEST_PERMISSIONS = new String[]{
 //            Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-//            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
 //            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.RECORD_AUDIO
+            Manifest.permission.RECORD_AUDIO,
     };
 
     public MyAudioRecord myAudioRecord0 = new MyAudioRecord(0);
@@ -61,13 +65,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)!=
-                PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, REQUEST_CODE_ASK_PERMISSIONS);
+        for(String permission : REQUEST_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, REQUEST_CODE_ASK_PERMISSIONS);
+            }
         }
 
         configureReceiver();
-//        MyAudioRecord.AudioDevFilePermissionGet();
     }
     @Override
     protected void onDestroy() {
@@ -221,6 +226,51 @@ public class MainActivity extends AppCompatActivity {
                 break;
             default:
                 break;
+        }
+    }
+
+    public void FileIOonClicked(View view)
+    {
+        /*  Create new file
+            File appSED = new File(getExternalFilesDir(null), "dummy.txt");
+            try {
+                if(!appSED.exists())
+                    appSED.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        */
+
+        /* appSED Indicate application standard external (storage) directory */
+        File appSED = new File(this.getExternalFilesDir(null), "dummy.txt");
+//        System.out.println("File path: " + appSED.getAbsolutePath());
+        if(view.getId() == R.id.buttonReadFile)
+        {
+            try (FileInputStream fin = new FileInputStream(appSED)) {
+                int ret;
+                byte byteRead;
+                do {
+                    ret = fin.read();
+                    if(ret != -1) {
+                        byteRead = (byte) ret;
+                        System.out.print((char)byteRead);
+                    }
+                }while(ret != -1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.flush();
+        }
+
+        else if(view.getId() == R.id.buttonWriteFile)
+        {
+            try(FileOutputStream fos = new FileOutputStream(appSED, true)) {
+                String s = "Hello!\n";
+                byte[] textBytes = s.getBytes();
+                fos.write(textBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

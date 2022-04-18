@@ -23,4 +23,6 @@
     <string name="route_1_play_stop">线路1停止播放</string>
     <string name="cdp">changedp</string>
     <string name="cdc">changedc</string>
+    <string name="readfile">从文件读取</string>
+    <string name="writefile">写入到文件</string>
 </resources>
