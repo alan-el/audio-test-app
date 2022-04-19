@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AT</string>
+    <string name="app_name">音频测试</string>
     <string name="button_built_in_mic_record">手机MIC录音</string>
     <string name="button_headset_mic_record">有线耳机MIC录音</string>
     <string name="button_speaker_play">手机SPK播放</string>

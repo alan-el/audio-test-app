@@ -16,6 +16,7 @@ public class HeadsetPlugReceiver extends BroadcastReceiver {
     /* Every time when USB Audio device plug or unplug, this Receiver will receive 3 intents. */
     int count = 0;
 
+    public HeadsetPlugReceiver(){}
     public HeadsetPlugReceiver(MainActivity a)
     {
         activity = a;
