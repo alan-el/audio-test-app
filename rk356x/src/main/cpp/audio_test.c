@@ -236,7 +236,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSARead(JNIEnv *env, jobject obj,
     {
         jbyte ret_failed = -1;
         jbyteArray ret = (*env)->NewByteArray(env, 1);
-        (*env)->SetByteArrayRegion(env, ret, 0, 0, &ret_failed);
+        (*env)->SetByteArrayRegion(env, ret, 0, 1, &ret_failed);
         return ret;
     }
 
@@ -263,7 +263,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_TinyALSARead(JNIEnv *env, jobject obj,
 
      jbyteArray jframe = (*env)->NewByteArray(env, size / 2);
 
-     (*env)->SetByteArrayRegion(env, jframe, 0, size / 2 - 1, j_frame);
+     (*env)->SetByteArrayRegion(env, jframe, 0, size / 2, j_frame);
 
      free(j_frame);
 
@@ -296,7 +296,7 @@ Java_com_ndk_audiotestapp_MyAudioRecord_AAudioRead(JNIEnv *env, jobject obj, jin
     }
 
     jbyteArray jframe = (*env)->NewByteArray(env, SIZE_IN_BYTE);
-    (*env)->SetByteArrayRegion(env, jframe, 0, SIZE_IN_BYTE - 1, (jbyte *)buffer);
+    (*env)->SetByteArrayRegion(env, jframe, 0, SIZE_IN_BYTE, (jbyte *)buffer);
 
     free(buffer);
 
