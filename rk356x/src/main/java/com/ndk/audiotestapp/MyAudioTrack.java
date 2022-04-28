@@ -13,6 +13,9 @@ public class MyAudioTrack
     public static final int SOUND_DEV_OUT_ON_BOARD_SPK = 11;
     public static final int SOUND_DEV_OUT_USB_SPK = 12;
 
+    private static final int  PERIOD_SIZE = 320;
+    private static final int PERIOD_COUNT = 2;
+
     private int Route;          // 0: board mic(tinyALSA) -> usb headset(AAudio) ;
                                 // 1: usb mic(AAudio) -> board spk(tinyALSA)
     private byte [] TrackDataBuffer;
@@ -39,7 +42,7 @@ public class MyAudioTrack
     public MyAudioTrack(int Route)
     {
         this.Route = Route;
-        this.TrackDataBuffer = new byte[4096];
+        this.TrackDataBuffer = new byte[PERIOD_SIZE * PERIOD_COUNT * 2 * 2];
         this.writeIndex = 0;
     }
     /** if use tinyALSA, parameter "Device" is a custom defined constant integer, see
@@ -98,10 +101,13 @@ public class MyAudioTrack
         if(this.Route == 1)
         {
             byte [] doubleChannelsData = expandSingleChannelToDouble(audioData);
-            // 使用 TinyALSA 播放时，当写的数据长度不为 PERIOD_SIZE * PERIOD_COUNT * 2 * channels num 时，
-            // 不能发送，要积累到要求值才能发送，PERIOD_SIZE 和 PERIOD_COUNT 可以在 ndk_aaudio.h 中设置，
-            // 若修改，成员变量TrackDataBuffer 初始化时的长度也要修改，目前的值是 512 * 2 * 2 * 2 = 4096
-            // 如果每次调用 write 时 sizeInBytes != 4096，可能会产生周期性噪声？
+
+            /**使用 TinyALSA 播放时，当写的数据长度不为 PERIOD_SIZE * PERIOD_COUNT * 2 * channels num 时，
+             * 不能发送，要积累到要求值才能发送，PERIOD_SIZE 和 PERIOD_COUNT 可以在 ndk_aaudio.h 中设置，
+             * 同时，该类中的静态 final 变量 PERIOD_SIZE 和 PERIOD_COUNT 也要修改,这样,
+             * 成员变量 TrackDataBuffer 初始化时的长度也就相应修改了，目前的值是 320 * 2 * 2 * 2 = 2560
+             * 如果每次调用 write 时 sizeInBytes != 4096，可能会产生周期性噪声？
+             */
             int dataIndex = 0;
             while(dataIndex <= (doubleChannelsData.length - 1)) {
                 this.TrackDataBuffer[this.writeIndex] = doubleChannelsData[dataIndex];
@@ -117,7 +123,7 @@ public class MyAudioTrack
         }
         else
         {
-            this.AAudioWrite(this.Route, audioData, 2048);
+            this.AAudioWrite(this.Route, audioData, PERIOD_SIZE * PERIOD_COUNT * 2);
         }
         return 0;
     }

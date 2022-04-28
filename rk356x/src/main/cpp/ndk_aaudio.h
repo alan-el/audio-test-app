@@ -7,7 +7,7 @@
 
 #include <aaudio/AAudio.h>
 /*---------------------------------TingALSA-------------------------------------*/
-#define PERIOD_SIZE (512)
+#define PERIOD_SIZE (320)
 #define PERIOD_COUNT (2)
 
 /*---------------------------------AAudio-------------------------------------*/
