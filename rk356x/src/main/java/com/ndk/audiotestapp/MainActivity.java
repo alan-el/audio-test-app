@@ -71,8 +71,8 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, REQUEST_PERMISSIONS, REQUEST_CODE_ASK_PERMISSIONS);
             }
         }
-
         configureReceiver();
+
     }
     @Override
     protected void onDestroy() {
@@ -148,8 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 captureThread1 = new CaptureThread(1, myAudioRecord1);
                 captureThread1.start();
                 break;
-            case R.id.buttonExchangeC:
-                myAudioRecord0.changeTinyALSADeviceC(SOUND_DEV_IN_HEADPHONE_MIC);
             default:
                 break;
         }
@@ -176,9 +174,6 @@ public class MainActivity extends AppCompatActivity {
                 myAudioTrack1.startPlaying(myAudioTrack1.sndDevices);
                 playThread1 = new PlayThread(1, myAudioTrack1);
                 playThread1.start();
-                break;
-            case R.id.buttonExchangeP:
-                myAudioTrack1.changeTinyALSADeviceP(SOUND_DEV_OUT_ON_BOARD_SPK);
                 break;
             default:
                 break;
@@ -229,48 +224,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void FileIOonClicked(View view)
+    @SuppressLint("NonConstantResourceId")
+    public void switchUSBAudioRoute(View view)
     {
-        /*  Create new file
-            File appSED = new File(getExternalFilesDir(null), "dummy.txt");
-            try {
-                if(!appSED.exists())
-                    appSED.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        */
-
-        /* appSED Indicate application standard external (storage) directory */
-        File appSED = new File(this.getExternalFilesDir(null), "dummy.txt");
-//        System.out.println("File path: " + appSED.getAbsolutePath());
-        if(view.getId() == R.id.buttonReadFile)
+        switch (view.getId())
         {
-            try (FileInputStream fin = new FileInputStream(appSED)) {
-                int ret;
-                byte byteRead;
-                do {
-                    ret = fin.read();
-                    if(ret != -1) {
-                        byteRead = (byte) ret;
-                        System.out.print((char)byteRead);
-                    }
-                }while(ret != -1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.flush();
-        }
+            case R.id.buttonHandFree:
+                HandsetHandFreeSwitch.useHandFree();
+                break;
 
-        else if(view.getId() == R.id.buttonWriteFile)
-        {
-            try(FileOutputStream fos = new FileOutputStream(appSED, true)) {
-                String s = "Hello!\n";
-                byte[] textBytes = s.getBytes();
-                fos.write(textBytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            case R.id.buttonHandset:
+                HandsetHandFreeSwitch.useHandset();
+                break;
+
+            default:
+                break;
         }
     }
 
@@ -296,11 +264,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("返回:");
             System.out.println(out);
 
-            /*File snd_dev = new File("/dev/snd/pcmC1D0c");
-            if(snd_dev.canRead() && snd_dev.canWrite())
-                System.out.println("sound device "+ snd_dev.getAbsolutePath() + " have rw permission.");
-            else
-                System.out.println("sound device "+ snd_dev.getAbsolutePath() + " haven't rw permission.");*/
+            /**/
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("205:\n");

@@ -74,60 +74,32 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonRoute0CaptureStop" />
 
     <Button
-        android:id="@+id/buttonExchangeP"
-        android:layout_width="120dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="28dp"
-        android:backgroundTint="#8BC34A"
-        android:onClick="audioTestPlay"
-        android:shadowColor="@color/white"
-        android:text="@string/cdp"
-        android:textSize="10sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonRoute1PlayStop" />
-
-    <Button
-        android:id="@+id/buttonExchangeC"
+        android:id="@+id/buttonHandFree"
         android:layout_width="120dp"
         android:layout_height="40dp"
         android:layout_marginStart="28dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:backgroundTint="#8BC34A"
-        android:onClick="audioTestRecord"
+        android:onClick="switchUSBAudioRoute"
         android:shadowColor="@color/white"
-        android:text="@string/cdc"
+        android:text="@string/switch_to_hand_free"
         android:textSize="10sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonRoute1CaptureStop" />
 
     <Button
-        android:id="@+id/buttonReadFile"
-        android:layout_width="120dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="20dp"
-        android:backgroundTint="#8BC34A"
-        android:onClick="FileIOonClicked"
-        android:shadowColor="@color/white"
-        android:text="@string/readfile"
-        android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonExchangeC" />
-
-    <Button
-        android:id="@+id/buttonWriteFile"
+        android:id="@+id/buttonHandset"
         android:layout_width="120dp"
         android:layout_height="40dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="28dp"
         android:backgroundTint="#8BC34A"
-        android:onClick="FileIOonClicked"
+        android:onClick="switchUSBAudioRoute"
         android:shadowColor="@color/white"
-        android:text="@string/writefile"
+        android:text="@string/switch_to_hand_set"
         android:textSize="10sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonExchangeP" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonRoute1PlayStop" />
 
     <Button
         android:id="@+id/buttonRoute1PlayStop"

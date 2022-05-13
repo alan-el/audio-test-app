@@ -19,7 +19,7 @@ public class MyAudioTrack
     private int Route;          // 0: board mic(tinyALSA) -> usb headset(AAudio) ;
                                 // 1: usb mic(AAudio) -> board spk(tinyALSA)
     private byte [] TrackDataBuffer;
-    public int sndDevices = SOUND_DEV_OUT_HEADPHONE_SPK;
+    public int sndDevices = SOUND_DEV_OUT_ON_BOARD_SPK;
     private int writeIndex;
     public boolean Playing = false;
     // Used to load the 'audiotestapp' library on application startup.
